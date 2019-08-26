@@ -121,21 +121,30 @@ exports.review_start = async function(req, res) {
 }
 
 exports.rating_start = function(req, res) {
-    const jsonObj = req.body
     const responseObj = JSON.parse(process.env.RESPONSE)
-    console.log(jsonObj.action["actionName"])
 
     if(pool){
         db.getUserScore(req['user'].id,(err,result)=>{
             if(err){
                 console.log("err : ",req['user'].id)
             }else{
-                if(result){
+                console.log(result)
+                
+                if(result && result.length){
                     console.log("get score :",req['user'].id)
                     responseObj.output["rating_score"] = result[0].score
                     responseObj.directives[0] = [] 
-                    return res.json(responseObj)
+                }else{
+                    responseObj.output["rating_score"] = 0
+                    responseObj.directives[0] = []                     
                 }
+                /*
+                    console.log("get score : 플레이를 해주세요.")
+                    responseObj.directives[0] = []
+                    responseObj.resultCode = JSON.parse(process.env.EXCEPTION).rating
+                    return res.json(responseObj)
+                */
+                return res.json(responseObj)
             }
         })
     }    
