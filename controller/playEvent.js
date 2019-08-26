@@ -2,12 +2,13 @@ const uuidv1 = require('uuid/v1') //timestamp uuid
 const redis = require('./redisFunc')
 const flatten = require('flat')
 const room = process.env.ROOM
-
+const db = require('../lib/dbFunc')
 exports.matching_start = async (req, res)=>{
     const responseObj = JSON.parse(process.env.RESPONSE)
     const directives = responseObj.directives[0]    
 
-    try{        
+    try{ 
+        saveUser(req)
         /* Check user is Exit and Re-enter during matching */
         const user = await redis.hgetall(req.cache, req.user.id)
         let reEnterUserRoomKey = false 
@@ -31,7 +32,6 @@ exports.matching_start = async (req, res)=>{
     }
     
     responseObj.output["matching_ment"] = "매칭을 시작합니다."
-    directives.audioItem.stream["offsetInMilliseconds"] = 18000
     directives.audioItem.stream["url"] = JSON.parse(process.env.URL).matching
     directives.audioItem.stream["token"] = JSON.parse(process.env.TOKEN).matching    
     console.log(directives)
@@ -169,6 +169,7 @@ function createRoom(req, reEnterUserRoomKey, directives){
                 resolve(newRoom)
             }
             else{
+                /* reentrant */
                 // If user is Exit and Re-enter during matching
                 if(reEnterUserRoomKey==roomManager.roomKey){
                     /* 
@@ -183,12 +184,13 @@ function createRoom(req, reEnterUserRoomKey, directives){
                     await inviteUser(req, newRoom, directives)
                     resolve(newRoom)
                 }
-                /* reentrant */
+                
                 
                 // All other case
                 else{
                     const ttl = await redis.getTTL(req.cache, room)
-                    redis.hmset(req.cache, room, {'playerCount': ++roomManager.playerCount}, ttl)
+                    roomManager.playerCount = parseInt(roomManager.playerCount)+1
+                    redis.hmset(req.cache, room, {'playerCount': roomManager.playerCount }, ttl)
                     await inviteUser(req, roomManager, directives)
                     resolve(roomManager)
                 }
@@ -209,18 +211,19 @@ function createRoom(req, reEnterUserRoomKey, directives){
 }
 
 function inviteUser(req, newRoom, directives){
-    return new Promise(async (resolve,reject)=>{        
+    return new Promise(async (resolve,reject)=>{   
+        
+        const userSetting = JSON.parse(process.env.userSetting)
+        /* Give a 'room key' & 'player number' to user */   
+        userSetting.roomKey = newRoom.roomKey
+        userSetting.player = newRoom.playerCount
+        redis.hmset(req.cache, req.user.id.toString(), userSetting, req.expire)   
+
         if(newRoom){
             // Room & User Setting
-            const roomSetting = JSON.parse(process.env.roomSetting)
-            const userSetting = JSON.parse(process.env.userSetting)
+            const roomSetting = JSON.parse(process.env.roomSetting)            
 
-            /* Give a 'room key' & 'player number' to user */   
-            userSetting.roomKey = newRoom.roomKey
-            userSetting.player = newRoom.playerCount
-            redis.hmset(req.cache, req.user.id.toString(), userSetting, req.expire)   
-
-            /* Invite users */   
+            /* Invite users */ 
             if(newRoom.playerCount==1){
                 // random choice background intro music
                 const randomIntro = Math.floor(Math.random()*(3));
@@ -239,7 +242,7 @@ function inviteUser(req, newRoom, directives){
                         url = JSON.parse(process.env.URL).intro_mise
                         break;
                 }
-                roomSetting.player1 = req.user.id
+                roomSetting.player1 = req.user.id + "," + req.user.name
                 roomSetting.firstEntryTime = new Date().getTime()
                 roomSetting.playerCount = 1
                 roomSetting.introMusic = url
@@ -248,20 +251,32 @@ function inviteUser(req, newRoom, directives){
                 redis.hmset(req.cache, newRoom.roomKey, flatten(roomSetting), req.expire)
             }else{
                 // from the second user
-                const createdRoom = await redis.hgetall(req.cache, newRoom.roomKey)
+                const createdRoom = flatten.unflatten( await redis.hgetall(req.cache, newRoom.roomKey) )
                 const nowTime = new Date().getTime()
-                directives.audioItem.stream["offsetInMilliseconds"] = nowTime - createdRoom.firstEntryTime               
-                createRoom['player'+newRoom.playerCount] = req.user.id
+                directives.audioItem.stream["offsetInMilliseconds"] = nowTime - createdRoom.firstEntryTime 
+                createdRoom['player'+newRoom.playerCount] = req.user.id + "," + req.user.name
                 createdRoom.playerCount = newRoom.playerCount
                 redis.hmset(req.cache, newRoom.roomKey, flatten(createdRoom), req.expire)
                 console.log(createdRoom)
             }
         }else{    
             // Reset user offset
-            const createdRoom = await redis.hgetall(req.cache, reEnterUserRoomKey)
+            const createdRoom = flatten.unflatten( await redis.hgetall(req.cache, reEnterUserRoomKey) )
             const nowTime = new Date().getTime()
             directives.audioItem.stream["offsetInMilliseconds"] = nowTime - createdRoom.firstEntryTime
         }
         resolve()
     })        
+}
+
+function saveUser(req){
+    db.saveUser(req.user,(err,result)=>{
+        if(err){
+            console.log("err : ",req.user.id)
+        }else{
+            if(result){
+                console.log("saved user :",req.user.id)
+            }
+        }
+    })   
 }
