@@ -24,8 +24,7 @@ app.use('/lastbread', async function(req, res, next){
         console.log(jsonObj.action["actionName"])
     }catch(err){
         console.log("액션이름 안 날라옴.")
-    }
-    
+    }    
 
     // Nugu request
     if(jsonObj.context){     
