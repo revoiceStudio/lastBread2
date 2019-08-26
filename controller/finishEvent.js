@@ -20,7 +20,6 @@ exports.matching_finished = async function(req, res){
     }
     
     console.log(directives)
-    directives.audioItem.stream["offsetInMilliseconds"] = 13000
     return res.json(responseObj)
 }
 
@@ -34,9 +33,9 @@ exports.intro_finished = async function(req, res){
 
         //set user 'bettingAvailabilty' is true
         setTimeout(function() {
-            redis.hmset(req.cache, req.user.id, {'bettingAvailabilty':true}, 20)
+            redis.hmset(req.cache, req.user.id, {'bettingAvailabilty':true}, 25)
             console.log(req.user.id,' is bettingAvailabilty is true!');
-        }, 20 *1000);          
+        }, 15 *1000);          
        
         responseObj.output["playerNum"] = user.player    
         directives.audioItem.stream["token"] = JSON.parse(process.env.TOKEN).ready_bet
@@ -48,7 +47,6 @@ exports.intro_finished = async function(req, res){
     }    
     
     console.log(directives)
-    directives.audioItem.stream["offsetInMilliseconds"] = 13000
     return res.json(responseObj)
 }
 
@@ -274,10 +272,12 @@ exports.nextBet_finished = async function(req, res){
             userRoom.firstEntryNextDay = true
             const nextDay = parseInt(userRoom.day) + 1
             const livePlayer = []
-            for(let i=1; i<5; i++){                
-                if(userRoom["day"+userRoom.day]["player"+i].life == "true"){
-                    livePlayer.push(i)
-                }                
+            for(let i=1; i<5; i++){
+                if(userRoom["day"+userRoom.day]["player"+i]){
+                    if(userRoom["day"+userRoom.day]["player"+i].life == "true"){
+                        livePlayer.push(i)
+                    }
+                }            
             }
             userRoom["day"+nextDay] = {}
             // live player copy to next day && userSetting init
@@ -310,9 +310,9 @@ exports.nextBet_finished = async function(req, res){
         // Lock has been released
         //set user 'bettingAvailabilty' is true
         setTimeout(function() {
-            redis.hmset(req.cache, req.user.id, {'bettingAvailabilty':true}, 20)
+            redis.hmset(req.cache, req.user.id, {'bettingAvailabilty':true}, 25)
             console.log(req.user.id,' is bettingAvailabilty is true!');
-        }, 20 *1000);
+        }, 15 *1000);
         
         responseObj.output["now_money"] = userRoom["day"+userRoom.day]["player"+user.player].money
         console.log(directives)
