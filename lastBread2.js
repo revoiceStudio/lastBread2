@@ -18,21 +18,28 @@ const redlock = new Redlock ([client], {
 const app = express()
 app.use(express.json())
 
-app.use('/lastbread', async function(req, res, next){    
-    const jsonObj = req.body
-    try{
-        console.log(jsonObj.action["actionName"])
-    }catch(err){
-        console.log("액션이름 안 날라옴.")
-    }    
-
+app.use('/lastbread/health', (req, res)=>{
+    console.log('health request : ', req.headers)
+    res.status(200);
+    return res.send("OK")
+})
+app.use('/lastbread', async (req, res, next)=>{    
+    const jsonObj = req.body   
     // Nugu request
-    if(jsonObj.context){     
+    if(jsonObj.context){
+        const authorization = req.headers.authorization.split(" ")[1]
+        console.log(authorization)
+        if(authorization != process.env.APIKEY){
+            console.log('authorization failed')
+            res.status(401);
+            return res.send('authorization failed')
+        }
+        console.log(jsonObj.action["actionName"])
         // If accessToken is undefined   
         if(!jsonObj.context.session["accessToken"]){
             console.log("OAuth is not linked")
             const responseObj = JSON.parse(process.env.RESPONSE)
-            responseObj["resultCode"] = JSON.parse(process.env.EXCEPTION).OAuth
+            responseObj.resultCode = JSON.parse(process.env.EXCEPTION).OAuth
             return res.json(responseObj)
         }
         else{            
@@ -40,8 +47,9 @@ app.use('/lastbread', async function(req, res, next){
             console.log("ID : ",req.user.id,", NAME : "+ req.user.name)
         }
     }else{
-        // Response to all other requests ( contain 'health' request )
-        return res.json({'status':'OK'})
+        console.log('bad request')
+        res.status(404);
+        return res.send('bad request')
     }        
     
     req.cache = client
