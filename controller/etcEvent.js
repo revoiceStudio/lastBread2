@@ -45,9 +45,9 @@ exports.review_start = async function(req, res) {
                     let maxBettingPlayerMent = ""
                     if(maxBettingPlayer.length == 1){
                         if(user.player == maxBettingPlayer[0]){
-                            maxBettingMent = "이 날의 우승자는 " + userRoom["day"+i]["player"+maxBettingPlayer[0]].betting + "원을 배팅한, 당신이었습니다."
+                            maxBettingMent = userRoom["day"+i]["player"+maxBettingPlayer[0]].betting + "원을 배팅한, 당신이 빵을 차지했습니다."
                         }else{
-                            maxBettingMent = "이 날의 우승자는 " + userRoom["day"+i]["player"+maxBettingPlayer[0]].betting + "원을 배팅한,"+ maxBettingPlayer[0] +"번 플레이어 였습니다."
+                            maxBettingMent = userRoom["day"+i]["player"+maxBettingPlayer[0]].betting + "원을 배팅한,"+ maxBettingPlayer[0] +"번 플레이어가 빵을 차지했습니다."
                         }
                     }else{
                         maxBettingMent = "NO"
@@ -89,7 +89,7 @@ exports.review_start = async function(req, res) {
             let compareBettingment
             if(deadDay==0){
                 deadDay = "승리하셨네요."
-                compareBettingment = "다음에도 이번 게임처럼 배팅을 하면 우승하실거에요."
+                compareBettingment = "다음에도 이번 게임처럼 배팅을 하면 또 우승하실 수 있겠네요."
             }
             else{
                 if(higherBetting>lowerBetting){
