@@ -3,7 +3,6 @@ require('json-dotenv')('./controller/redisConfig.json')
 require('dotenv').config({path:'credential.env'})
 const express = require('express')
 const request = require('request')
-const db = require('./lib/dbFunc')
 const router = require('./router')
 const redis = require('redis');
 const client = redis.createClient();
@@ -21,7 +20,13 @@ app.use(express.json())
 
 app.use('/lastbread', async function(req, res, next){    
     const jsonObj = req.body
-    console.log(jsonObj.action["actionName"])
+    try{
+        console.log(jsonObj.action["actionName"])
+    }catch(err){
+        console.log("액션이름 안 날라옴.")
+    }
+    
+
     // Nugu request
     if(jsonObj.context){     
         // If accessToken is undefined   
@@ -38,9 +43,8 @@ app.use('/lastbread', async function(req, res, next){
     }else{
         // Response to all other requests ( contain 'health' request )
         return res.json({'status':'OK'})
-    }    
+    }        
     
-    saveUser(req)
     req.cache = client
     req.redlock = redlock
     //req.expire =(60*60)*24*7
@@ -64,16 +68,4 @@ function getGoogleUserInfo(accessToken){
             resolve(JSON.parse(body))            
         })
     })    
-}
-
-function saveUser(req){
-    db.saveUser(req.user,(err,result)=>{
-        if(err){
-            console.log("err : ",req.user.id)
-        }else{
-            if(result){
-                console.log("saved user :",req.user.id)
-            }
-        }
-    })   
 }
