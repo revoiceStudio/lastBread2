@@ -27,8 +27,9 @@ exports.matching_start = async (req, res)=>{
         
     }catch(err){
         console.log(err)
-        responseObj["resultCode"] = JSON.parse(process.env.EXCEPTION).server
-        return res.json(responseObj)
+        let errObj = {}
+        errObj["resultCode"] = JSON.parse(process.env.EXCEPTION).server
+        return res.json(errObj)
     }
     
     responseObj.output["matching_ment"] = "매칭을 시작합니다."
@@ -57,8 +58,9 @@ exports.betting_start = async (req, res)=>{
     else if(bet==9){bet=90000}
     else if(bet==10){bet=100000}
     else{
-        responseObj["resultCode"] = JSON.parse(process.env.EXCEPTION).server
-        return res.json(responseObj)
+        let errObj = {}
+        errObj["resultCode"] = JSON.parse(process.env.EXCEPTION).server
+        return res.json(errObj)
     }
 
     // Get user roomKey
@@ -67,15 +69,17 @@ exports.betting_start = async (req, res)=>{
     /* Wrong approach */
     // 1. Direct access without matching
     if(!user){
-        responseObj["resultCode"] = JSON.parse(process.env.EXCEPTION).bet
+        let errObj = {}
+        errObj["resultCode"] = JSON.parse(process.env.EXCEPTION).bet
         console.log(req.user.id," : Direct access without matching")
-        return res.json(responseObj)
+        return res.json(errObj)        
     }
     // 2. Direct access immediately after matching or intro or betting finished
     if(user.bettingAvailabilty=="false"){
-        responseObj["resultCode"] = JSON.parse(process.env.EXCEPTION).bet
+        let errObj = {}
+        errObj["resultCode"] = JSON.parse(process.env.EXCEPTION).bet
         console.log(req.user.id," : Direct access immediately after matching or intro or betting finished")
-        return res.json(responseObj)
+        return res.json(errObj)
     }
 
     // Set bettingAvailabilty is 'false'
@@ -149,8 +153,9 @@ exports.betting_start = async (req, res)=>{
     }).catch((err)=> {
         console.log(err)
         console.log("lock failed")
-        responseObj["resultCode"] = JSON.parse(process.env.EXCEPTION).server
-        return res.json(responseObj)
+        let errObj = {}
+        errObj["resultCode"] = JSON.parse(process.env.EXCEPTION).server
+        return res.json(errObj)
     });
 
     /*  !!!!!!!!!! LOCK block end !!!!!!!!!!  */   

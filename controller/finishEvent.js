@@ -15,8 +15,9 @@ exports.matching_finished = async function(req, res){
         directives.audioItem.stream["token"] = JSON.parse(process.env.TOKEN).intro
     }catch(err){
         console.error(err)
-        responseObj["resultCode"] = JSON.parse(process.env.EXCEPTION).server
-        return res.json(responseObj)
+        let errObj = {}
+        errObj["resultCode"] = JSON.parse(process.env.EXCEPTION).server
+        return res.json(errObj)
     }
     
     console.log(directives)
@@ -42,8 +43,9 @@ exports.intro_finished = async function(req, res){
         directives.audioItem.stream["url"] = JSON.parse(process.env.URL).ready_bet
     }catch(err){
         console.error(err)
-        responseObj["resultCode"] = JSON.parse(process.env.EXCEPTION).server
-        return res.json(responseObj)
+        let errObj = {}
+        errObj["resultCode"] = JSON.parse(process.env.EXCEPTION).server
+        return res.json(errObj)
     }    
     
     console.log(directives)
@@ -168,8 +170,9 @@ exports.bet_finished = async function(req, res){
         return res.json(responseObj)  
     }).catch((err)=> {
         console.log(err)
-        responseObj["resultCode"] = JSON.parse(process.env.EXCEPTION).server
-        return res.json(responseObj)
+        let errObj = {}
+        errObj["resultCode"] = JSON.parse(process.env.EXCEPTION).server
+        return res.json(errObj)
     });   
 }
 
@@ -320,8 +323,9 @@ exports.nextBet_finished = async function(req, res){
         return res.json(responseObj)        
     }).catch((err)=> {
         console.log(err)
-        responseObj["resultCode"] = JSON.parse(process.env.EXCEPTION).server
-        return res.json(responseObj)
+        let errObj = {}
+        errObj["resultCode"] = JSON.parse(process.env.EXCEPTION).server
+        return res.json(errObj)
     });   
 
 }
