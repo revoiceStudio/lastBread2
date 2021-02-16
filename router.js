@@ -19,8 +19,8 @@ router.post('/passnight_finished',finishEvent.passNight_finished)
 router.post('/next_bet',finishEvent.nextBet_finished)
 
 // etc..
-router.post('/review_start', etcEvent.review_start)
-router.post('/rating_start', etcEvent.rating_start)
-router.post('/ticket_start',etcEvent.ticket_start)
+// router.post('/review_start', etcEvent.review_start)
+// router.post('/rating_start', etcEvent.rating_start)
+// router.post('/ticket_start',etcEvent.ticket_start)
 
 module.exports = router

@@ -2,13 +2,12 @@ const uuidv1 = require('uuid/v1') //timestamp uuid
 const redis = require('./redisFunc')
 const flatten = require('flat')
 const room = process.env.ROOM
-const db = require('../lib/dbFunc')
+
 exports.matching_start = async (req, res)=>{
     const responseObj = JSON.parse(process.env.RESPONSE)
     const directives = responseObj.directives[0]    
 
     try{ 
-        saveUser(req)
         /* Check user is Exit and Re-enter during matching */
         const user = await redis.hgetall(req.cache, req.user.id)
         let reEnterUserRoomKey = false 
@@ -246,7 +245,7 @@ function inviteUser(req, newRoom, directives){
                     url = JSON.parse(process.env.URL).intro_mise
                     break;
             }
-            roomSetting.player1 = req.user.id + "," + req.user.name
+            roomSetting.player1 = req.user.id;
             roomSetting.firstEntryTime = new Date().getTime()
             roomSetting.playerCount = 1
             roomSetting.introMusic = url
@@ -258,7 +257,7 @@ function inviteUser(req, newRoom, directives){
             const createdRoom = flatten.unflatten( await redis.hgetall(req.cache, newRoom.roomKey) )
             const nowTime = new Date().getTime()
             directives.audioItem.stream["offsetInMilliseconds"] = nowTime - createdRoom.firstEntryTime 
-            createdRoom['player'+newRoom.playerCount] = req.user.id + "," + req.user.name
+            createdRoom['player'+newRoom.playerCount] = req.user.id;
             createdRoom.playerCount = newRoom.playerCount
             redis.hmset(req.cache, newRoom.roomKey, flatten(createdRoom), req.expire)
             console.log(createdRoom)
@@ -266,16 +265,4 @@ function inviteUser(req, newRoom, directives){
         
         resolve()
     })        
-}
-
-function saveUser(req){
-    db.saveUser(req.user,(err,result)=>{
-        if(err){
-            console.log("err : ",req.user.id)
-        }else{
-            if(result){
-                console.log("saved user :",req.user.id)
-            }
-        }
-    })   
 }

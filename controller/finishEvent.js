@@ -1,6 +1,5 @@
 const redis = require('./redisFunc')
 const flatten = require('flat')
-const db = require('../lib/dbFunc')
 
 exports.matching_finished = async function(req, res){
     const responseObj = JSON.parse(process.env.RESPONSE)
@@ -203,32 +202,10 @@ exports.passNight_finished = async function(req, res){
     // If user is live player
     else{             
         // If live player is last one. WIN !!
-        if(livePlayerCount==1){
-            // plus score
-            db.getUserScore(req.user.id, (err, result)=>{
-                if(err){console.log(err)}
-                else{
-                    let score = result[0].score
-                    
-                    if(userRoom.day==3){
-                        score += 1000
-                    }else if(userRoom.day==4){
-                        score += 700
-                    }else{
-                        score += 500
-                    }                    
-                    db.setUserScore(req.user.id, score,(err, result)=>{
-                        if(err){console.log(err)}
-                        else{
-                            console.log(result)
-                        }
-                    })
-                }
-            })            
+        if(livePlayerCount==1){         
             url = JSON.parse(process.env.URL).dayresult_win
             token = JSON.parse(process.env.TOKEN).gamefinished_token
-        }
-        else{
+        } else{
             let dayMent= parseInt(userRoom.day) +1
             let deadMent = ""
             if(dayMent==2){dayMent="둘"}
